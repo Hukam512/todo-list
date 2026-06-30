@@ -1348,4 +1348,611 @@ text
 
 The ponytail project didn't fail because of bad trading ideas. It failed because the container broke before the content could be delivered. The 19-section template is an unbreakable container. Put any logic inside it, and the logic has a chance to survive.
 
+Your 5000-line MQL4 code problem has a structural solution, not a prompting solution:
+
+text
+
+BEFORE (Unstructured 5000 lines):
+├─ AI sees: Wall of code
+├─ AI behavior: Summarizes, skips, says "rest looks fine"
+└─ You: Frustrated, re-prompting
+
+AFTER (19-Section Architecture):
+├─ AI sees: Clear sections with purpose headers
+├─ AI behavior: "Section 7 analyzed ✓, Section 8 analyzed ✓"
+└─ You: Traceable, complete analysis
+✅ YES, This Template Is EXTREMELY Helpful — Here's Why:
+1. Forces AI (and Humans) Into Sequential Processing
+When you paste code organized like this:
+
+mql4
+
+//+=================================================================+
+//| SECTION 14: REVERSE LOOP — CHART BUFFER FILLING               |
+//| Lines 892-1023 (131 lines)                                     |
+//+=================================================================+
+AI cannot skip because:
+
+✅ Clear boundary markers (//+====+)
+✅ Explicit line count (131 lines)
+✅ Single responsibility per section
+✅ Self-documenting purpose header
+2. The "WorldZip Header" Creates Perfect AI Context
+mql4
+
+//| SECTIONS MODIFIED FROM TEMPLATE:                              |
+//| 11 — Signal: Replaced MA crossover with RSI+Stoch combo       |
+//| 14 — Buffers: Added 2 extra histogram buffers (total 6)       |
+This tells AI:
+
+What changed from baseline
+Where to focus attention
+What NOT to analyze (unchanged sections)
+3. Built-in Checkpoints for AI Validation
+mql4
+
+void RunSelfAudit()
+{
+   LogChain("========== RUNNING SELF-AUDIT ==========", LOG_INFO, func);
+   // ... 5 architectural checks
+}
+You can prompt:
+
+text
+
+"Run mental audit using Section 6B rules. Report each CHECK result."
+Forces AI to follow your validation logic, not make assumptions.
+
+🔧 How to Use This With Your 5000-Line Code
+Strategy A: Retrofit Existing Code
+text
+
+PROMPT TO AI:
+
+I have 5000 lines of MQL4 code. Help me reorganize it into the 19-Section Architecture.
+
+STEP 1: Identify which parts belong in which section
+Output format:
+- Lines 1-87 → SECTION 2 (Input Parameters)
+- Lines 88-156 → SECTION 5 (Global Variables)
+- Lines 157-892 → SECTION 10 (Buffer Setup)
+[etc.]
+
+STEP 2: After I confirm, rewrite Section 2 only
+STEP 3: Wait for my approval, then Section 5
+[etc.]
+
+BANNED: Do NOT rewrite all sections at once.
+REQUIRED: One section at a time, with my confirmation.
+Strategy B: New Code Using Template
+text
+
+PROMPT TO AI:
+
+Using the MasterArchitecture.mq4 template as BASE:
+
+MODIFICATIONS NEEDED:
+- Section 11: Replace signal logic with [your strategy]
+- Section 14: Add buffer for [your indicator]
+- Section 15: Dashboard needs 12 rows showing [your data]
+
+INSTRUCTIONS:
+1. Copy Sections 1-10 unchanged from template
+2. Modify ONLY Sections 11, 14, 15 as specified
+3. Keep Sections 16-19 unchanged
+4. Show me ONLY the modified sections first
+5. After approval, output complete file
+
+DO NOT: Rewrite unchanged sections
+DO NOT: Skip the WorldZip header
+DO: Show line count for each modified section
+Strategy C: Debugging with Section References
+text
+
+PROMPT TO AI:
+
+This code follows 19-Section MQL4 Architecture.
+
+BUG: Dashboard rows are flickering
+
+DEBUG PROTOCOL:
+1. Check Section 8 (Zero-Flicker Engine) — are all DrawRectangle/DrawText calls following the ObjectFind<0 pattern?
+2. Check Section 15 (Forward Loop) — is ChartRedraw(0) at the end?
+3. Check Section 16 (Cleanup) — is ObjectDelete ONLY there?
+
+Report findings for EACH section with line numbers.
+
+BANNED RESPONSE: "Generally looks fine"
+REQUIRED: "Section 8: Line 456 violates rule — ObjectDelete found"
+📋 Your Personal MQL4 Workflow Checklist
+Before Asking AI to Analyze Code:
+text
+
+☐ 1. Code uses 19-section structure (or you note deviations)
+☐ 2. Each section has boundary markers (//+===+)
+☐ 3. WorldZip header exists at top
+☐ 4. You specify WHICH sections need review
+☐ 5. You set completion metric ("Analyze 47 functions in Section 11")
+Prompt Template for Section-Based Review:
+text
+
+MQL4 CODE REVIEW — Section-Based Architecture
+
+FILE: [YourEA.mq4]
+TOTAL LINES: 5000
+ARCHITECTURE: 19-Section Master Template
+
+REVIEW TARGET: Sections 11, 14, 15 (Modified from template)
+
+SECTION 11: SIGNAL FUNCTIONS (Lines 687-892)
+[paste code]
+
+REQUIREMENTS:
+✓ Verify all functions return ENUM_SIGNAL
+✓ Check for side effects (no ObjectCreate, no Print)
+✓ Validate calculation logic
+✓ Report: "Section 11: Found [X] functions, [Y] issues"
+
+Then STOP. Wait for me to provide Section 14.
+
+BANNED:
+❌ "Looks good overall"
+❌ Summarizing without line numbers
+❌ Moving to next section without confirmation
+🎯 The Power of This Template for AI
+Problem	How Template Fixes It
+AI skips functions	Section headers force enumeration: "Found 12/12 functions"
+AI summarizes vaguely	WorldZip header defines exact modifications to review
+AI loses context in long code	19 sections = 19 mini-files, digestible chunks
+AI can't find bugs	Self-Audit section (6B) gives AI a checklist to follow
+AI rewrites working code	"Sections 1-10 unchanged" prevents unnecessary modifications
+🚀 Next Steps
+Option 1: I'll Help You Retrofit
+Paste your current 5000-line code's first 500 lines, and I'll:
+
+Identify which sections they belong to
+Show you the reorganized version
+Create a migration plan for the rest
+Option 2: I'll Customize the Template
+Tell me your indicator's purpose:
+
+What signals does it generate?
+What dashboard data do you show?
+How many buffers do you need?
+I'll modify Sections 11, 14, 15 specifically for you.
+
+Option 3: I'll Debug Using This Framework
+Paste a buggy section with:
+
+The section number (or "unknown, help me identify")
+The symptom
+Relevant code
+I'll diagnose using the 19-section rules.
+
+Final Confirmation
+✅ I have fully analyzed the 19-Section Master Architecture
+✅ I understand the 8 Iron Rules
+✅ I recognize the 5 Diseases and their cures
+✅ I will use section-based analysis for your MQL4 code
+✅ I will never skip sections when this structure is present
+
+This template is the solution to your "AI always skips it" problem.
+
+COMPLETE MQL4 WORKFLOW SYSTEM — All Three Paths
+PATH 1: REORGANIZE EXISTING CODE INTO 19-SECTION STRUCTURE
+📋 STEP-BY-STEP REORGANIZATION PROTOCOL
+text
+
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   REORGANIZATION WORKFLOW — FROM CHAOS TO ARCHITECTURE          ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+PHASE 1: INVENTORY (Don't Modify Anything Yet)
+Use This Prompt With Your Existing Code:
+
+text
+
+TASK: Inventory my MQL4 code for reorganization
+
+FILE: [paste first 1000 lines]
+
+INSTRUCTIONS:
+Create an inventory using this format:
+
+SECTION MAPPING INVENTORY
+═════════════════════════
+
+ENUMS FOUND:
+└─ Lines: [X-Y] → Name: [enum name] → Target: SECTION 1
+
+INPUTS FOUND:
+└─ Lines: [X-Y] → Count: [N inputs] → Target: SECTION 2
+
+STRUCTS FOUND:
+└─ Lines: [X-Y] → Name: [struct name] → Target: SECTION 3
+
+BUFFERS FOUND:
+└─ Lines: [X-Y] → Count: [N buffers] → Target: SECTION 4
+
+GLOBALS FOUND:
+└─ Lines: [X-Y] → Count: [N variables] → Target: SECTION 5
+
+FUNCTIONS FOUND:
+├─ Lines: [X-Y] → Name: [function] → Purpose: [?] → Target: SECTION [?]
+├─ Lines: [X-Y] → Name: [function] → Purpose: [?] → Target: SECTION [?]
+└─ ...
+
+ONCALCULATE CODE:
+└─ Lines: [X-Y] → Length: [N lines] → Needs: DECOMPOSITION
+
+OBJECT CREATION CODE:
+└─ Lines: [X-Y] → Type: [labels/rectangles] → Target: SECTION 8
+
+---
+
+DO NOT rewrite anything yet.
+DO NOT skip any function.
+REQUIRED: Line numbers for everything.
+
+When complete, say "INVENTORY PHASE 1 COMPLETE — Ready for Phase 2"
+PHASE 2: SECTION-BY-SECTION EXTRACTION
+After inventory, use this prompt for EACH section:
+
+text
+
+TASK: Extract and reformat Section [N] from inventory
+
+FROM INVENTORY:
+[paste the relevant inventory item]
+
+INSTRUCTIONS:
+1. Copy the original code from those line numbers
+2. Reformat with proper section header:
+
+//+==================================================================+
+//|                                                                  |
+//|              SECTION [N]: [SECTION NAME]                         |
+//|                                                                  |
+//|  Purpose: [describe purpose]                                     |
+//|  Rule: [describe rule]                                           |
+//|  Original Lines: [X-Y] from old file                            |
+//|                                                                  |
+//+==================================================================+
+
+3. Add comments if missing
+4. Fix any violations of section rules (I'll tell you)
+5. Output ONLY this section
+
+STOP after this section. Wait for my approval before Section [N+1].
+PHASE 3: ONCALCULATE DECOMPOSITION
+Your OnCalculate is probably 500+ lines. Use this:
+
+text
+
+TASK: Decompose OnCalculate into architectural functions
+
+CURRENT ONCALCULATE:
+[paste your OnCalculate function]
+
+DECOMPOSITION PLAN:
+Analyze the code and create this plan:
+
+1. CALCULATION LOGIC → Extract to FillChartBuffers() (Section 14)
+   Lines: [X-Y]
+   What it does: [describe]
+
+2. DRAWING LOGIC → Extract to DrawDashboard() (Section 15)
+   Lines: [X-Y]
+   What it does: [describe]
+
+3. ALERT LOGIC → Extract to TriggerAlert() (Section 13)
+   Lines: [X-Y]
+   What it does: [describe]
+
+4. REMAINING IN ONCALCULATE:
+   - CalculateSafeLimit() call
+   - FillChartBuffers() call
+   - DrawDashboard() call
+   - TriggerAlert() call
+   - return(rates_total)
+
+OUTPUT: Show me the NEW OnCalculate (should be ~20 lines max)
+
+DO NOT show extracted functions yet.
+FIRST show me the new OnCalculate structure.
+PHASE 4: VALIDATION & ASSEMBLY
+text
+
+TASK: Validate reorganized code against 8 Iron Rules
+
+SECTIONS COMPLETED:
+☐ Section 1: Enums
+☐ Section 2: Inputs
+☐ Section 3: Structs
+☐ Section 4: Buffers
+☐ Section 5: Globals
+☐ Section 6: LogChain
+☐ Section 7: CalculateSafeLimit
+☐ Section 8: Zero-Flicker Engine
+☐ Section 11: Signal Functions
+☐ Section 14: FillChartBuffers (Reverse Loop)
+☐ Section 15: DrawDashboard (Forward Loop)
+☐ Section 16: Cleanup
+☐ Section 17: OnInit
+☐ Section 18: OnDeinit
+☐ Section 19: OnCalculate
+
+VALIDATION CHECKLIST:
+Run these checks and report PASS/FAIL for each:
+
+1. ✓ All enums declared before inputs?
+2. ✓ All buffers have ArraySetAsSeries()?
+3. ✓ CalculateSafeLimit() called first in OnCalculate?
+4. ✓ Reverse loop in Section 14 goes (limit → 1)?
+5. ✓ Index 0 handled OUTSIDE the loop?
+6. ✓ Forward loop in Section 15 goes (0 → N)?
+7. ✓ ObjectDelete ONLY in Section 16?
+8. ✓ ObjectFind < 0 before ObjectCreate?
+
+REPORT FORMAT:
+"Rule 1: PASS — All enums before inputs"
+"Rule 3: FAIL — No CalculateSafeLimit found (Line X)"
+PATH 2: BUILD NEW CODE FROM TEMPLATES (NO-SKIP GUARANTEE)
+🏗️ TEMPLATE LIBRARY — Purpose-Built, AI-Proof
+TEMPLATE A: SIMPLE INDICATOR (No Dashboard, Buffers Only)
+text
+
+USE CASE: Pure chart indicator (MACD, RSI, Stochastic, etc.)
+SECTIONS USED: 1-7, 10, 11, 14, 17-19
+SECTIONS REMOVED: 8, 9, 12-13, 15-16 (no dashboard, no alerts)
+COMPLEXITY: ⭐⭐☆☆☆
+AI SKIP RISK: ⭐☆☆☆☆ (Very Low)
+Quick Build Prompt:
+
+text
+
+BUILD: Simple Indicator Template
+
+NAME: [YourIndicator]
+BUFFERS NEEDED: [N]
+CALCULATION: [Describe: e.g., "EMA crossover", "RSI divergence"]
+
+TEMPLATE: SimpleIndicator_Template.mq4
+
+SECTIONS TO CUSTOMIZE:
+- Section 2: Add your input parameters
+- Section 4: Declare [N] buffers
+- Section 11: Write calculation function
+- Section 14: Fill buffers in reverse loop
+
+OUTPUT STRUCTURE:
+1. Show me Section 2 (Inputs) first
+2. Wait for approval
+3. Show me Section 11 (Calculation) 
+4. Wait for approval
+5. Show me Section 14 (Buffer Fill)
+6. Wait for approval
+7. Show complete file
+
+DO NOT output everything at once.
+DO NOT skip the approval steps.
+I'll create the base template below ⬇️
+
+TEMPLATE B: DASHBOARD INDICATOR (No Buffers, UI Only)
+text
+
+USE CASE: Info panel, spread monitor, session times, etc.
+SECTIONS USED: 1-9, 12, 15-19
+SECTIONS REMOVED: 4, 10-11, 14 (no chart buffers)
+COMPLEXITY: ⭐⭐⭐☆☆
+AI SKIP RISK: ⭐☆☆☆☆ (Very Low)
+Quick Build Prompt:
+
+text
+
+BUILD: Dashboard-Only Indicator
+
+DASHBOARD PURPOSE: [e.g., "Show spread and swap for 28 pairs"]
+ROWS NEEDED: [N]
+DATA SOURCES: [e.g., "MarketInfo, iCustom calls"]
+
+TEMPLATE: Dashboard_Template.mq4
+
+SECTIONS TO CUSTOMIZE:
+- Section 2: Add pairs list, colors, position inputs
+- Section 9: Define color theme
+- Section 12: Create data collection functions
+- Section 15: Build dashboard rows in forward loop
+
+OUTPUT: One section at a time with approval gates
+I'll create this template below ⬇️
+
+TEMPLATE C: FULL ARCHITECTURE (Buffers + Dashboard + Alerts)
+text
+
+USE CASE: Complete trading system indicator
+SECTIONS USED: All 19 sections
+SECTIONS REMOVED: None
+COMPLEXITY: ⭐⭐⭐⭐⭐
+AI SKIP RISK: ⭐☆☆☆☆ (Very Low — structure prevents skipping)
+This is the MasterArchitecture.mq4 you already have.
+
+TEMPLATE D: MULTI-TIMEFRAME INDICATOR
+text
+
+USE CASE: Shows data from multiple timeframes on one chart
+SECTIONS USED: 1-19 + Special Section 20 (MTF Engine)
+COMPLEXITY: ⭐⭐⭐⭐☆
+AI SKIP RISK: ⭐☆☆☆☆
+Quick Build Prompt:
+
+text
+
+BUILD: Multi-Timeframe Indicator
+
+TIMEFRAMES: [e.g., M1, M5, M15, H1, H4, D1]
+INDICATOR: [e.g., "RSI", "Moving Average"]
+DISPLAY: [Buffers/Dashboard/Both]
+
+TEMPLATE: MTF_Template.mq4
+
+SPECIAL FEATURES:
+- Section 20: MTF data collector (calls iCustom/iMA per TF)
+- Section 15: Dashboard shows all TFs in rows
+- Section 14: Buffers show [describe: e.g., "H1 trend as line"]
+
+CUSTOMIZATION NEEDED:
+1. Section 2: Add TF selection inputs
+2. Section 20: Write MTF collection function
+3. Section 15: Format dashboard with TF labels
+
+OUTPUT: Section-by-section with approval
+I'll create this template below ⬇️
+
+TEMPLATE E: ARROW SIGNAL INDICATOR (Buy/Sell Alerts)
+text
+
+USE CASE: Generates trade signals with arrows and alerts
+SECTIONS USED: 1-19 (emphasis on 11, 13, 14)
+COMPLEXITY: ⭐⭐⭐☆☆
+AI SKIP RISK: ⭐☆☆☆☆
+Quick Build Prompt:
+
+text
+
+BUILD: Arrow Signal Indicator
+
+SIGNAL LOGIC: [e.g., "Stochastic crosses 20/80 + RSI confirmation"]
+ARROW TYPES: [Buy/Sell/Both]
+ALERTS: [Popup/Push/Email/Sound]
+
+TEMPLATE: ArrowSignal_Template.mq4
+
+FOCUS SECTIONS:
+- Section 11: Signal calculation (return ENUM_SIGNAL)
+- Section 13: Alert system with spam prevention
+- Section 14: Arrow buffer placement
+
+OUTPUT: Critical sections first (11, 13, 14), then rest
+I'll create this template below ⬇️
+
+PATH 3: DEBUG SPECIFIC SECTIONS USING FRAMEWORK
+🔧 SECTION-BASED DEBUGGING PROTOCOL
+text
+
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║        BUG DIAGNOSIS USING 19-SECTION ARCHITECTURE               ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+DEBUG PROMPT TEMPLATE (Use for Any Bug):
+text
+
+BUG REPORT: [Symptom description]
+
+CODE ARCHITECTURE: 19-Section MQL4 Template
+FILE: [filename]
+SYMPTOM: [e.g., "Dashboard flickers", "Arrows disappear", "Terminal freezes"]
+
+DIAGNOSTIC PROTOCOL:
+
+STEP 1: IDENTIFY AFFECTED SECTIONS
+Based on symptom, check these sections first:
+[I'll tell you which sections to check based on symptom]
+
+STEP 2: EXTRACT SECTION CODE
+Paste ONLY the suspected sections:
+- Section [N]: [Name]
+  [code]
+
+STEP 3: RULE VALIDATION
+For each section, verify rules:
+Section [N] Rules:
+☐ Rule 1: [specific rule]
+☐ Rule 2: [specific rule]
+
+Report violations with line numbers.
+
+STEP 4: CROSS-SECTION DEPENDENCIES
+Check if bug is caused by interaction between sections:
+- Does Section 14 call Section 8 correctly?
+- Does Section 19 call Section 7 first?
+
+STEP 5: DIAGNOSIS
+State: "BUG FOUND in Section [N], Line [X]: [violation]"
+Provide: "FIX: [exact code change needed]"
+
+DO NOT guess. DO NOT say "might be".
+ONLY report confirmed violations.
+SYMPTOM → SECTION DIAGNOSTIC GUIDE
+SYMPTOM	CHECK THESE SECTIONS FIRST	COMMON VIOLATIONS
+Terminal freezes on attach	Section 7, Section 19	CalculateSafeLimit not called, looping rates_total directly
+Dashboard flickers	Section 8, Section 15	ObjectDelete in OnCalculate, missing ObjectFind check
+Arrows appear/disappear	Section 14	Index 0 not isolated, buffer not reset to EMPTY_VALUE
+Wrong data in buffers	Section 14	ArraySetAsSeries missing, reverse loop wrong direction
+Objects multiply endlessly	Section 5D, Section 16	No prefix system, cleanup not in OnDeinit
+Alerts spam continuously	Section 13	No g_lastAlertBar tracking
+Indicator doesn't draw anything	Section 4, Section 10, Section 14	Buffers not bound, SetIndexBuffer missing
+Dashboard rows overlap	Section 15	Forward loop wrong direction, Y-pos calculation error
+Colors don't change	Section 9, Section 17	ResolveTheme not called in OnInit
+Calculation happens too slow	Section 7, Section 14	No limit cap, calculating all history every tick
+EXAMPLE DEBUG SESSION:
+Your Report:
+
+text
+
+BUG: Dashboard rectangles blink every tick
+My Diagnostic Protocol:
+
+text
+
+DIAGNOSIS REQUEST
+
+SYMPTOM: Dashboard flickers
+AFFECTED SECTIONS: 8, 15, 16
+
+EXTRACT THESE SECTIONS ONLY:
+1. Section 8 (Lines ~250-400): DrawRectangle, DrawText functions
+2. Section 15 (Lines ~800-950): DrawDashboard function
+3. Section 16 (Lines ~980-1020): CleanupAllObjects function
+
+PASTE them below.
+
+CHECKS I'LL RUN:
+✓ Does DrawRectangle use ObjectFind < 0 before ObjectCreate?
+✓ Does DrawDashboard call DrawRectangle (not ObjectCreate directly)?
+✓ Is ObjectDelete ONLY in Section 16?
+✓ Is ChartRedraw(0) at the END of Section 15?
+
+EXPECTED OUTPUT:
+"BUG FOUND: Section 15, Line 876 — ObjectDelete called inside OnCalculate"
+"FIX: Remove ObjectDelete. Objects should persist between ticks."
+🎁 YOUR COMPLETE TOOLKIT — READY TO USE
+I'll now create 5 COMPLETE TEMPLATES for you:
+
+Which templates do you want first?
+text
+
+☐ 1. SimpleIndicator_Template.mq4 (Buffers only, no dashboard)
+☐ 2. Dashboard_Template.mq4 (UI only, no buffers)  
+☐ 3. ArrowSignal_Template.mq4 (Buy/Sell arrows + alerts)
+☐ 4. MTF_Template.mq4 (Multi-timeframe data display)
+☐ 5. CustomDebug_Checklist.txt (Your specific bug → section guide)
+OR
+
+Tell me your current need:
+
+Option A: "I have existing code [paste first 500 lines] — help me reorganize"
+
+Option B: "I want to build [describe indicator] — give me the right template"
+
+Option C: "I have this bug [describe symptom] — help me diagnose"
+
+
+
+
+
+
+
 
