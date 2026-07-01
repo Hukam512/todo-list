@@ -2509,4 +2509,968 @@ LOG RETURN IS BETTER BECAUSE:
 └─────────────────────────────────────────────────────────────┘
 Option B: "I want to build [describe indicator] — give me the right template"
 
+//+------------------------------------------------------------------+
+//|                                      MasterArchitecture.mq4       |
+//|              The Perfect MQL4 Code Organization Blueprint         |
+//|                                                                  |
+//|  WORLDZIP: MasterArchitecture > MasterArchitecture.mq4           |
+//|  IDENTITY: Base template for all future indicators/EAs           |
+//|  STACK: MQL4 Strict | No external dependencies                   |
+//|  PARADIGM: Event-driven indicator with cached UI objects         |
+//|                                                                  |
+//|  ARCHITECTURE: 19-Section Master Template (DO NOT REORDER)       |
+//|  SECTIONS USED: 1-19 (full template)                             |
+//|                                                                  |
+//|  BUFFER MAP:                                                     |
+//|  Buf[0] = Histogram Up (DRAW_HISTOGRAM)                          |
+//|  Buf[1] = Histogram Down (DRAW_HISTOGRAM)                        |
+//|  Buf[2] = Signal Arrows (DRAW_ARROW code 233)                    |
+//|  Buf[3] = Trend Line (DRAW_LINE)                                 |
+//|                                                                  |
+//|  OBJECT PREFIX: "MA_" (Master Architecture)                      |
+//|                                                                  |
+//|  ARCHITECTURE RULES ENFORCED:                                    |
+//|  1. Golden Limit Formula — never freeze on first run             |
+//|  2. Reverse Loop — for indicator buffers (oldest → newest)       |
+//|  3. Forward Loop — for dashboard objects (row 1 → row N)         |
+//|  4. Zero-Flicker Engine — create once, move always               |
+//|  5. Index 0 isolation — current bar handled outside loop         |
+//|  6. LogChain system — every action is traceable                  |
+//|  7. No ObjectDelete inside OnCalculate — ever                    |
+//|  8. ArraySetAsSeries — always, for every buffer                  |
+//|  9. Dynamic Sizing — all dimensions derive from Font Size        |
+//| 10. Init Cleanup — wipe previous state to prevent layout rot     |
+//+------------------------------------------------------------------+
+#property copyright   "Master Architecture Template"
+#property link        ""
+#property version     "1.10"
+#property strict
+#property indicator_chart_window
+#property indicator_buffers 4
+#property indicator_plots   4
+
+//+==================================================================+
+//|                    SECTION 1: ENUM DEFINITIONS                   |
+//+==================================================================+
+
+//--- 1A: Log Levels (for LogChain system)
+enum ENUM_LOG_LEVEL
+  {
+   LOG_INFO  = 0,   // Information
+   LOG_WARN  = 1,   // Warning
+   LOG_ERROR = 2    // Error
+  };
+
+//--- 1B: Trade Signal Types
+enum ENUM_SIGNAL
+  {
+   SIGNAL_NONE  = 0,  // No Signal
+   SIGNAL_BUY   = 1,  // Buy Signal
+   SIGNAL_SELL  = 2   // Sell Signal
+  };
+
+//--- 1C: Dashboard Color Themes
+enum ENUM_THEME
+  {
+   THEME_DARK   = 0,  // Dark Theme
+   THEME_LIGHT  = 1,  // Light Theme
+   THEME_NEON   = 2   // Neon Theme
+  };
+
+//+==================================================================+
+//|                    SECTION 2: INPUT PARAMETERS                   |
+//+==================================================================+
+
+//--- 2A: Loop & Performance Controls
+input int    InpMaxBars       = 1000;    // Max bars to calculate (prevents freeze)
+input bool   InpRecalcLastBar = true;    // Recalculate the last closed bar
+
+//--- 2B: Indicator Parameters (replace with your own logic)
+input int    InpFastPeriod    = 12;      // Fast Period
+input int    InpSlowPeriod    = 26;      // Slow Period
+input int    InpSignalPeriod  = 9;       // Signal Period
+
+//--- 2C: Dashboard UI Controls (Font Size is the MASTER dimension)
+input ENUM_THEME InpTheme      = THEME_DARK; // Dashboard Theme
+input int       InpFontSize    = 10;        // Font Size (Controls all scaling)
+input int       InpDashX       = 20;        // Dashboard X Position
+input int       InpDashY       = 30;        // Dashboard Y Position
+input bool      InpShowDash    = true;      // Show Dashboard
+
+//--- 2D: Visual Style Controls
+input color   InpBullColor     = clrDodgerBlue;   // Bullish Color
+input color   InpBearColor     = clrTomato;       // Bearish Color
+input color   InpArrowColor    = clrGold;         // Arrow Color
+input int     InpArrowSize     = 2;               // Arrow Width
+input color   InpNeutralColor  = clrGray;         // Neutral Color
+
+//--- 2E: Alert Controls
+input bool   InpAlertOnSignal  = false;    // Alert on New Signal
+input bool   InpPushOnSignal   = false;    // Push Notification on Signal
+
+//+==================================================================+
+//|                    SECTION 3: STRUCTURES                         |
+//+==================================================================+
+
+//--- 3A: Single Bar Data Container
+struct SBarData
+  {
+   double            open;
+   double            high;
+   double            low;
+   double            close;
+   long              volume;
+   datetime          time;
+   ENUM_SIGNAL       signal;
+   double            fastVal;
+   double            slowVal;
+   double            signalVal;
+  };
+
+//--- 3B: Dashboard Row Data Container
+struct SDashRow
+  {
+   string            label;
+   string            value;
+   color             rowColor;
+   bool              isHighlighted;
+  };
+
+//+==================================================================+
+//|               SECTION 4: INDICATOR BUFFERS                      |
+//+==================================================================+
+
+double BufHistUp[];
+double BufHistDn[];
+double BufArrow[];
+double BufTrend[];
+
+//+==================================================================+
+//|               SECTION 5: GLOBAL VARIABLES                       |
+//+==================================================================+
+
+//--- 5A: State Tracking
+int    g_lastAlertBar  = -1;
+int    g_prevSignal    = SIGNAL_NONE;
+bool   g_isFirstRun    = true;
+
+//--- 5B: Theme Colors (resolved in OnInit from enum)
+color  g_bgPrimary;
+color  g_bgSecondary;
+color  g_bgHeader;
+color  g_textPrimary;
+color  g_textSecondary;
+color  g_borderColor;
+
+//--- 5C: Dynamic Layout Values (calculated from Font Size in ResolveTheme)
+int    g_dashTotalHeight;
+int    g_headerHeight;
+int    g_dataRowStart;
+int    g_rowH;           // Dynamic Row Height
+int    g_dashWidth;      // Dynamic Dashboard Width
+
+//--- 5D: Object Name Prefixes
+string g_objPrefix = "MA_";
+
+//+==================================================================+
+//|              SECTION 6: LOGCHAIN SYSTEM                          |
+//+==================================================================+
+
+void LogChain(string message, ENUM_LOG_LEVEL level = LOG_INFO, string funcName = "")
+  {
+   string levelStr;
+   switch(level)
+     {
+      case LOG_INFO:  levelStr = "INFO";  break;
+      case LOG_WARN:  levelStr = "WARN";  break;
+      case LOG_ERROR: levelStr = "ERROR"; break;
+      default:        levelStr = "????";  break;
+     }
+
+   string timeStr = TimeToString(TimeCurrent(), TIME_DATE | TIME_SECONDS);
+   string prefix  = g_objPrefix;
+
+   PrintFormat("[%s] [%s] [%s%s] %s",
+               timeStr,
+               levelStr,
+               prefix,
+               funcName,
+               message);
+  }
+
+//+==================================================================+
+//|       SECTION 6B: SELF-AUDIT SYSTEM (Architectural Integrity)    |
+//+==================================================================+
+
+void RunSelfAudit()
+  {
+   string func = "SelfAudit";
+   int errors = 0;
+
+   LogChain("========== RUNNING SELF-AUDIT ==========", LOG_INFO, func);
+
+   //--- CHECK 1: Prefix is not empty
+   if(StringLen(g_objPrefix) == 0)
+     {
+      LogChain("FAIL: g_objPrefix is empty. Object collision risk.", LOG_ERROR, func);
+      errors++;
+     }
+   else
+      LogChain("PASS: Object prefix = '" + g_objPrefix + "'", LOG_INFO, func);
+
+   //--- CHECK 2: Max bars is reasonable
+   if(InpMaxBars < 10 || InpMaxBars > 10000)
+     {
+      LogChain("FAIL: InpMaxBars = " + IntegerToString(InpMaxBars) +
+               " (dangerous range). Use 100-5000.", LOG_ERROR, func);
+      errors++;
+     }
+   else
+      LogChain("PASS: InpMaxBars = " + IntegerToString(InpMaxBars), LOG_INFO, func);
+
+   //--- CHECK 3: Dynamic row height is valid
+   if(g_rowH < 15)
+     {
+      LogChain("FAIL: g_rowH = " + IntegerToString(g_rowH) +
+               " (too small, text will clip).", LOG_ERROR, func);
+      errors++;
+     }
+   else
+      LogChain("PASS: g_rowH = " + IntegerToString(g_rowH), LOG_INFO, func);
+
+   //--- CHECK 4: Dashboard fits on screen
+   if(InpDashY + g_dashTotalHeight > 2000)
+      LogChain("WARN: Dashboard height exceeds 2000px. May go off-screen.", LOG_WARN, func);
+   else
+      LogChain("PASS: Dashboard fits within screen bounds.", LOG_INFO, func);
+
+   //--- CHECK 5: Symbol has valid data
+   if(MarketInfo(Symbol(), MODE_BID) <= 0)
+     {
+      LogChain("FAIL: Symbol " + Symbol() + " has invalid BID.", LOG_ERROR, func);
+      errors++;
+     }
+   else
+      LogChain("PASS: Symbol " + Symbol() + " has valid data.", LOG_INFO, func);
+
+   if(errors > 0)
+      LogChain("AUDIT FAILED: " + IntegerToString(errors) + " error(s)!", LOG_ERROR, func);
+   else
+      LogChain("AUDIT PASSED.", LOG_INFO, func);
+  }
+
+//+==================================================================+
+//|           SECTION 7: GOLDEN LIMIT CALCULATOR                     |
+//+==================================================================+
+
+int CalculateSafeLimit(int rates_total, int prev_calculated)
+  {
+   int limit;
+
+   if(prev_calculated == 0)
+     {
+      limit = MathMin(rates_total - 1, InpMaxBars);
+      LogChain("First run detected. Capping loop to " +
+               IntegerToString(limit) + " bars.", LOG_INFO, "CalcLimit");
+     }
+   else
+     {
+      if(InpRecalcLastBar)
+         limit = rates_total - prev_calculated + 1;
+      else
+         limit = rates_total - prev_calculated;
+
+      if(limit <= 0)
+         return(0);
+     }
+
+   return(limit);
+  }
+
+//+==================================================================+
+//|        SECTION 8: ZERO-FLICKER DRAWING ENGINE                    |
+//+==================================================================+
+
+void DrawRectangle(string name, int x, int y, int width, int height,
+                   color bgClr, color borderClr = clrNONE, int zOrder = 0)
+  {
+   string fullName = g_objPrefix + name;
+
+   if(ObjectFind(0, fullName) < 0)
+     {
+      if(!ObjectCreate(0, fullName, OBJ_RECTANGLE_LABEL, 0, 0, 0))
+        {
+         LogChain("Failed to create rectangle: " + fullName, LOG_ERROR, "DrawRect");
+         return;
+        }
+      ObjectSetInteger(0, fullName, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, fullName, OBJPROP_HIDDEN, true);
+     }
+
+   ObjectSetInteger(0, fullName, OBJPROP_XDISTANCE, x);
+   ObjectSetInteger(0, fullName, OBJPROP_YDISTANCE, y);
+   ObjectSetInteger(0, fullName, OBJPROP_XSIZE, width);
+   ObjectSetInteger(0, fullName, OBJPROP_YSIZE, height);
+   ObjectSetInteger(0, fullName, OBJPROP_BGCOLOR, bgClr);
+   ObjectSetInteger(0, fullName, OBJPROP_BORDER_TYPE, BORDER_FLAT);
+   ObjectSetInteger(0, fullName, OBJPROP_BORDER_COLOR, borderClr);
+   ObjectSetInteger(0, fullName, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+   ObjectSetInteger(0, fullName, OBJPROP_BACK, false);
+   ObjectSetInteger(0, fullName, OBJPROP_ZORDER, zOrder);
+  }
+
+void DrawText(string name, string text, int x, int y, color txtClr,
+              int fontSize = -1, string font = "Arial Bold",
+              ENUM_ANCHOR_POINT anchor = ANCHOR_LEFT_UPPER)
+  {
+   string fullName = g_objPrefix + name;
+
+   if(fontSize < 0)
+      fontSize = InpFontSize;
+
+   if(ObjectFind(0, fullName) < 0)
+     {
+      if(!ObjectCreate(0, fullName, OBJ_LABEL, 0, 0, 0))
+        {
+         LogChain("Failed to create text: " + fullName, LOG_ERROR, "DrawText");
+         return;
+        }
+      ObjectSetInteger(0, fullName, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, fullName, OBJPROP_HIDDEN, true);
+     }
+
+   ObjectSetInteger(0, fullName, OBJPROP_XDISTANCE, x);
+   ObjectSetInteger(0, fullName, OBJPROP_YDISTANCE, y);
+   ObjectSetString(0, fullName, OBJPROP_TEXT, text);
+   ObjectSetString(0, fullName, OBJPROP_FONT, font);
+   ObjectSetInteger(0, fullName, OBJPROP_FONTSIZE, fontSize);
+   ObjectSetInteger(0, fullName, OBJPROP_COLOR, txtClr);
+   ObjectSetInteger(0, fullName, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+   ObjectSetInteger(0, fullName, OBJPROP_ANCHOR, anchor);
+  }
+
+void DrawChartArrow(string name, datetime time, double price,
+                    int arrowCode, color clr, int width = 2)
+  {
+   string fullName = g_objPrefix + name;
+
+   if(ObjectFind(0, fullName) < 0)
+     {
+      if(!ObjectCreate(0, fullName, OBJ_ARROW, 0, time, price))
+        {
+         LogChain("Failed to create arrow: " + fullName, LOG_ERROR, "DrawArrow");
+         return;
+        }
+      ObjectSetInteger(0, fullName, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, fullName, OBJPROP_HIDDEN, true);
+     }
+   else
+      ObjectMove(0, fullName, 0, time, price);
+
+   ObjectSetInteger(0, fullName, OBJPROP_COLOR, clr);
+   ObjectSetInteger(0, fullName, OBJPROP_WIDTH, width);
+   ObjectSetInteger(0, fullName, OBJPROP_ARROWCODE, arrowCode);
+  }
+
+void DrawTrendLine(string name, datetime time1, double price1,
+                   datetime time2, double price2, color clr,
+                   int width = 1, ENUM_LINE_STYLE style = STYLE_SOLID)
+  {
+   string fullName = g_objPrefix + name;
+
+   if(ObjectFind(0, fullName) < 0)
+     {
+      if(!ObjectCreate(0, fullName, OBJ_TREND, 0, time1, price1, time2, price2))
+        {
+         LogChain("Failed to create line: " + fullName, LOG_ERROR, "DrawLine");
+         return;
+        }
+      ObjectSetInteger(0, fullName, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, fullName, OBJPROP_HIDDEN, true);
+      ObjectSetInteger(0, fullName, OBJPROP_RAY_RIGHT, false);
+     }
+   else
+     {
+      ObjectMove(0, fullName, 0, time1, price1);
+      ObjectMove(0, fullName, 1, time2, price2);
+     }
+
+   ObjectSetInteger(0, fullName, OBJPROP_COLOR, clr);
+   ObjectSetInteger(0, fullName, OBJPROP_WIDTH, width);
+   ObjectSetInteger(0, fullName, OBJPROP_STYLE, style);
+  }
+
+//+==================================================================+
+//|          SECTION 9: THEME RESOLVER & DYNAMIC SIZING              |
+//+==================================================================+
+
+void ResolveTheme()
+  {
+   switch(InpTheme)
+     {
+      case THEME_DARK:
+         g_bgPrimary     = C'20,20,30';
+         g_bgSecondary   = C'30,30,45';
+         g_bgHeader      = C'15,15,25';
+         g_textPrimary   = clrWhite;
+         g_textSecondary = clrLightGray;
+         g_borderColor   = C'50,50,70';
+         break;
+
+      case THEME_LIGHT:
+         g_bgPrimary     = C'240,240,245';
+         g_bgSecondary   = C'250,250,255';
+         g_bgHeader      = C'200,200,210';
+         g_textPrimary   = clrBlack;
+         g_textSecondary = C'80,80,80';
+         g_borderColor   = C'180,180,190';
+         break;
+
+      case THEME_NEON:
+         g_bgPrimary     = C'10,10,20';
+         g_bgSecondary   = C'15,15,30';
+         g_bgHeader      = C'5,5,15';
+         g_textPrimary   = clrLime;
+         g_textSecondary = C'0,200,100';
+         g_borderColor   = C'0,100,50';
+         break;
+
+      default:
+         g_bgPrimary     = C'20,20,30';
+         g_bgSecondary   = C'30,30,45';
+         g_bgHeader      = C'15,15,25';
+         g_textPrimary   = clrWhite;
+         g_textSecondary = clrLightGray;
+         g_borderColor   = C'50,50,70';
+         break;
+     }
+
+   //--- DYNAMIC SIZING: All dimensions derived from Font Size
+   g_rowH            = (int)(InpFontSize * 2.2);
+   g_dashWidth       = (int)(InpFontSize * 22.0);
+   g_headerHeight    = (int)(InpFontSize * 2.8);
+   g_dataRowStart    = InpDashY + g_headerHeight;
+   g_dashTotalHeight = g_headerHeight + (8 * g_rowH);
+
+   LogChain("Theme resolved. Dynamic RowH=" + IntegerToString(g_rowH) +
+            " Width=" + IntegerToString(g_dashWidth), LOG_INFO, "ResolveTheme");
+  }
+
+//+==================================================================+
+//|          SECTION 10: BUFFER SETUP                                |
+//+==================================================================+
+
+void SetupBuffers()
+  {
+   SetIndexBuffer(0, BufHistUp);
+   SetIndexStyle(0, DRAW_HISTOGRAM, STYLE_SOLID, 3, InpBullColor);
+   SetIndexLabel(0, "Bull Histogram");
+
+   SetIndexBuffer(1, BufHistDn);
+   SetIndexStyle(1, DRAW_HISTOGRAM, STYLE_SOLID, 3, InpBearColor);
+   SetIndexLabel(1, "Bear Histogram");
+
+   SetIndexBuffer(2, BufArrow);
+   SetIndexStyle(2, DRAW_ARROW, STYLE_SOLID, InpArrowSize, InpArrowColor);
+   SetIndexArrow(2, 233);
+   SetIndexLabel(2, "Signal Arrow");
+   SetIndexEmptyValue(2, EMPTY_VALUE);
+
+   SetIndexBuffer(3, BufTrend);
+   SetIndexStyle(3, DRAW_LINE, STYLE_SOLID, 1, InpNeutralColor);
+   SetIndexLabel(3, "Trend");
+
+   LogChain("All 4 buffers configured.", LOG_INFO, "SetupBuffers");
+  }
+
+//+==================================================================+
+//|          SECTION 11: SIGNAL FUNCTIONS                            |
+//+==================================================================+
+
+ENUM_SIGNAL CalculateSignal(int barIndex)
+  {
+   double fastMA = iMA(NULL, 0, InpFastPeriod, 0, MODE_EMA, PRICE_CLOSE, barIndex);
+   double slowMA = iMA(NULL, 0, InpSlowPeriod, 0, MODE_EMA, PRICE_CLOSE, barIndex);
+
+   double fastMA_prev = iMA(NULL, 0, InpFastPeriod, 0, MODE_EMA, PRICE_CLOSE, barIndex + 1);
+   double slowMA_prev = iMA(NULL, 0, InpSlowPeriod, 0, MODE_EMA, PRICE_CLOSE, barIndex + 1);
+
+   if(fastMA_prev <= slowMA_prev && fastMA > slowMA)
+      return(SIGNAL_BUY);
+
+   if(fastMA_prev >= slowMA_prev && fastMA < slowMA)
+      return(SIGNAL_SELL);
+
+   return(SIGNAL_NONE);
+  }
+
+int CalculateSignalStrength(int barIndex)
+  {
+   double fastMA = iMA(NULL, 0, InpFastPeriod, 0, MODE_EMA, PRICE_CLOSE, barIndex);
+   double slowMA = iMA(NULL, 0, InpSlowPeriod, 0, MODE_EMA, PRICE_CLOSE, barIndex);
+   double diff   = MathAbs(fastMA - slowMA);
+   double atr    = iATR(NULL, 0, 14, barIndex);
+
+   if(atr == 0) return(0);
+
+   int strength = (int)MathMin(100, (diff / atr) * 100);
+   return(strength);
+  }
+
+//+==================================================================+
+//|          SECTION 12: UTILITY / HELPER FUNCTIONS                  |
+//+==================================================================+
+
+double GetPipSize()
+  {
+   int digits = (int)MarketInfo(Symbol(), MODE_DIGITS);
+   double point = MarketInfo(Symbol(), MODE_POINT);
+
+   if(digits == 3 || digits == 5)
+      return(point * 10);
+   else
+      return(point);
+  }
+
+double PointsToPips(double points)
+  {
+   return(points / GetPipSize());
+  }
+
+string FormatPrice(double price)
+  {
+   return(DoubleToString(price, (int)MarketInfo(Symbol(), MODE_DIGITS)));
+  }
+
+string FormatSpread()
+  {
+   double spreadPoints = MarketInfo(Symbol(), MODE_SPREAD);
+   double spreadPips   = PointsToPips(spreadPoints);
+   return(DoubleToString(spreadPips, 1));
+  }
+
+SBarData GetBarData(int shift)
+  {
+   SBarData bar;
+   bar.open   = Open[shift];
+   bar.high   = High[shift];
+   bar.low    = Low[shift];
+   bar.close  = Close[shift];
+   bar.volume = Volume[shift];
+   bar.time   = Time[shift];
+   bar.signal = SIGNAL_NONE;
+   bar.fastVal   = iMA(NULL, 0, InpFastPeriod, 0, MODE_EMA, PRICE_CLOSE, shift);
+   bar.slowVal   = iMA(NULL, 0, InpSlowPeriod, 0, MODE_EMA, PRICE_CLOSE, shift);
+   bar.signalVal = iMA(NULL, 0, InpSignalPeriod, 0, MODE_EMA, PRICE_CLOSE, shift);
+   return(bar);
+  }
+
+int BarsSinceLastSignal(ENUM_SIGNAL signalType)
+  {
+   for(int i = 1; i < InpMaxBars; i++)
+     {
+      if(CalculateSignal(i) == signalType)
+         return(i);
+     }
+   return(-1);
+  }
+
+double SafeDivide(double numerator, double denominator, double fallback = 0.0)
+  {
+   if(denominator == 0) return(fallback);
+   return(numerator / denominator);
+  }
+
+//+==================================================================+
+//|          SECTION 13: ALERT FUNCTIONS                             |
+//+==================================================================+
+
+void TriggerAlert(ENUM_SIGNAL signal, int barIndex)
+  {
+   if(barIndex == g_lastAlertBar) return;
+   g_lastAlertBar = barIndex;
+
+   string msg = "";
+   if(signal == SIGNAL_BUY)
+      msg = Symbol() + " BUY Signal on " + TimeFrameToString(Period());
+   else if(signal == SIGNAL_SELL)
+      msg = Symbol() + " SELL Signal on " + TimeFrameToString(Period());
+   else
+      return;
+
+   LogChain(msg, LOG_INFO, "Alert");
+
+   if(InpAlertOnSignal)
+      Alert(msg);
+
+   if(InpPushOnSignal)
+      SendNotification(msg);
+  }
+
+//+==================================================================+
+//|     SECTION 14: REVERSE LOOP — CHART BUFFER FILLING              |
+//+==================================================================+
+
+void FillChartBuffers(int limit)
+  {
+   ArraySetAsSeries(BufHistUp, true);
+   ArraySetAsSeries(BufHistDn, true);
+   ArraySetAsSeries(BufArrow,  true);
+   ArraySetAsSeries(BufTrend,  true);
+
+   for(int i = limit; i >= 1; i--)
+     {
+      BufHistUp[i] = 0;
+      BufHistDn[i] = 0;
+      BufArrow[i]  = EMPTY_VALUE;
+
+      SBarData bar = GetBarData(i);
+      bar.signal   = CalculateSignal(i);
+
+      double range = bar.high - bar.low;
+      if(bar.close >= bar.open)
+         BufHistUp[i] = bar.low + (range * 0.5);
+      else
+         BufHistDn[i] = bar.high - (range * 0.5);
+
+      if(bar.signal == SIGNAL_BUY)
+         BufArrow[i] = bar.low - GetPipSize() * 5;
+      else if(bar.signal == SIGNAL_SELL)
+         BufArrow[i] = bar.high + GetPipSize() * 5;
+
+      BufTrend[i] = bar.slowVal;
+     }
+
+   //=== INDEX 0: Handle CURRENT bar OUTSIDE the loop ===
+   BufHistUp[0] = 0;
+   BufHistDn[0] = 0;
+   BufArrow[0]  = EMPTY_VALUE;
+   BufTrend[0]  = iMA(NULL, 0, InpSlowPeriod, 0, MODE_EMA, PRICE_CLOSE, 0);
+
+   double liveRange = High[0] - Low[0];
+   if(Close[0] >= Open[0])
+      BufHistUp[0] = Low[0] + (liveRange * 0.5);
+   else
+      BufHistDn[0] = High[0] - (liveRange * 0.5);
+  }
+
+//+==================================================================+
+//|     SECTION 15: FORWARD LOOP — DASHBOARD DRAWING                 |
+//+==================================================================+
+
+void DrawDashboard()
+  {
+   if(!InpShowDash) return;
+
+   DrawRectangle("Dash_BG",
+                 InpDashX, InpDashY,
+                 g_dashWidth, g_dashTotalHeight,
+                 g_bgPrimary, g_borderColor, 0);
+
+   DrawRectangle("Dash_Header",
+                 InpDashX, InpDashY,
+                 g_dashWidth, g_headerHeight,
+                 g_bgHeader, g_borderColor, 1);
+                 
+   DrawText("Dash_Title",
+            "  MASTER DASHBOARD",
+            InpDashX + 5, InpDashY + 4,
+            g_textPrimary, InpFontSize + 1, "Arial Bold");
+
+   SDashRow rows[8];
+
+   rows[0].label = "Symbol";
+   rows[0].value = Symbol();
+   rows[0].rowColor = g_bgSecondary;
+   rows[0].isHighlighted = false;
+
+   rows[1].label = "Timeframe";
+   rows[1].value = TimeFrameToString(Period());
+   rows[1].rowColor = g_bgPrimary;
+   rows[1].isHighlighted = false;
+
+   rows[2].label = "Spread";
+   rows[2].value = FormatSpread() + " pips";
+   rows[2].rowColor = g_bgSecondary;
+   rows[2].isHighlighted = (MarketInfo(Symbol(), MODE_SPREAD) > 30);
+
+   rows[3].label = "Bid";
+   rows[3].value = FormatPrice(Bid);
+   rows[3].rowColor = g_bgPrimary;
+   rows[3].isHighlighted = false;
+
+   rows[4].label = "Ask";
+   rows[4].value = FormatPrice(Ask);
+   rows[4].rowColor = g_bgSecondary;
+   rows[4].isHighlighted = false;
+
+   rows[5].label = "Signal";
+   ENUM_SIGNAL currentSignal = CalculateSignal(1);
+   rows[5].value = (currentSignal == SIGNAL_BUY)  ? "BUY"  :
+                   (currentSignal == SIGNAL_SELL) ? "SELL" : "NONE";
+   rows[5].rowColor = g_bgPrimary;
+   rows[5].isHighlighted = (currentSignal != SIGNAL_NONE);
+
+   rows[6].label = "Strength";
+   rows[6].value = IntegerToString(CalculateSignalStrength(1)) + "%";
+   rows[6].rowColor = g_bgSecondary;
+   rows[6].isHighlighted = false;
+
+   rows[7].label = "Bars Since";
+   int barsSince = BarsSinceLastSignal(currentSignal);
+   rows[7].value = (barsSince >= 0) ? IntegerToString(barsSince) : "N/A";
+   rows[7].rowColor = g_bgPrimary;
+   rows[7].isHighlighted = false;
+
+   //=== FORWARD LOOP: Draw rows 0 → 7 ===
+   for(int i = 0; i < 8; i++)
+     {
+      string rowPrefix = "Dash_Row" + IntegerToString(i);
+      int yPos = g_dataRowStart + (i * g_rowH); // Uses dynamic g_rowH
+
+      color bgColor = rows[i].rowColor;
+      if(rows[i].isHighlighted)
+         bgColor = C'60,30,30';
+
+      DrawRectangle(rowPrefix + "_bg",
+                    InpDashX + 2, yPos,
+                    g_dashWidth - 4, g_rowH - 2, // Uses dynamic g_rowH
+                    bgColor, clrNONE, 2);
+
+      DrawText(rowPrefix + "_lbl",
+               "  " + rows[i].label,
+               InpDashX + 6, yPos + 4,
+               g_textSecondary, InpFontSize - 1, "Arial");
+
+      color valColor = g_textPrimary;
+      if(rows[i].label == "Signal")
+        {
+         if(currentSignal == SIGNAL_BUY)  valColor = InpBullColor;
+         if(currentSignal == SIGNAL_SELL) valColor = InpBearColor;
+        }
+      if(rows[i].isHighlighted)
+         valColor = clrOrange;
+
+      // Dynamically position value text based on font size
+      int valX = InpDashX + g_dashWidth - (InpFontSize * 8); 
+
+      DrawText(rowPrefix + "_val",
+               rows[i].value,
+               valX, yPos + 4,
+               valColor, InpFontSize, "Arial Bold");
+     }
+
+   ChartRedraw(0);
+  }
+
+//+==================================================================+
+//|          SECTION 16: CLEANUP FUNCTION                            |
+//+==================================================================+
+
+void CleanupAllObjects()
+  {
+   int totalObjects = ObjectsTotal(0, 0, OBJ_RECTANGLE_LABEL);
+   int deleted = 0;
+
+   //--- BACKWARD LOOP: Safely delete without skipping indexes
+   for(int i = totalObjects - 1; i >= 0; i--)
+     {
+      string objName = ObjectName(0, i, 0, OBJ_RECTANGLE_LABEL);
+      if(StringFind(objName, g_objPrefix) == 0)
+        {
+         ObjectDelete(0, objName);
+         deleted++;
+        }
+     }
+
+   totalObjects = ObjectsTotal(0, 0, OBJ_LABEL);
+   for(int i = totalObjects - 1; i >= 0; i--)
+     {
+      string objName = ObjectName(0, i, 0, OBJ_LABEL);
+      if(StringFind(objName, g_objPrefix) == 0)
+        {
+         ObjectDelete(0, objName);
+         deleted++;
+        }
+     }
+
+   totalObjects = ObjectsTotal(0, 0, OBJ_ARROW);
+   for(int i = totalObjects - 1; i >= 0; i--)
+     {
+      string objName = ObjectName(0, i, 0, OBJ_ARROW);
+      if(StringFind(objName, g_objPrefix) == 0)
+        {
+         ObjectDelete(0, objName);
+         deleted++;
+        }
+     }
+
+   totalObjects = ObjectsTotal(0, 0, OBJ_TREND);
+   for(int i = totalObjects - 1; i >= 0; i--)
+     {
+      string objName = ObjectName(0, i, 0, OBJ_TREND);
+      if(StringFind(objName, g_objPrefix) == 0)
+        {
+         ObjectDelete(0, objName);
+         deleted++;
+        }
+     }
+
+   LogChain("Cleanup complete. Deleted " + IntegerToString(deleted) + " objects.",
+            LOG_INFO, "Cleanup");
+
+   ChartRedraw(0);
+  }
+
+//+==================================================================+
+//|          SECTION 17: ONINIT                                     |
+//+==================================================================+
+
+int OnInit()
+  {
+   //--- STEP 0: CRITICAL - Wipe previous state to prevent layout corruption
+   CleanupAllObjects();
+
+   LogChain("========== INITIALIZING ==========", LOG_INFO, "OnInit");
+
+   //--- Step 1: Resolve visual theme & dynamic sizes
+   ResolveTheme();
+
+   //--- Step 2: Verify architectural integrity
+   RunSelfAudit();
+
+   //--- Step 3: Setup indicator buffers
+   SetupBuffers();
+
+   //--- Step 4: Set indicator short name
+   IndicatorShortName("MasterArch(" +
+                      IntegerToString(InpFastPeriod) + "," +
+                      IntegerToString(InpSlowPeriod) + "," +
+                      IntegerToString(InpSignalPeriod) + ")");
+
+   //--- Step 5: Mark as initialized
+   g_isFirstRun = true;
+
+   LogChain("Initialization complete.", LOG_INFO, "OnInit");
+
+   return(INIT_SUCCEEDED);
+  }
+
+//+==================================================================+
+//|          SECTION 18: ONDEINIT                                   |
+//+==================================================================+
+
+void OnDeinit(const int reason)
+  {
+   LogChain("Deinitializing. Reason: " + IntegerToString(reason),
+            LOG_INFO, "OnDeinit");
+
+   CleanupAllObjects();
+  }
+
+//+==================================================================+
+//|          SECTION 19: ONCALCULATE — THE MASTER ENGINE            |
+//+==================================================================+
+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime &time[],
+                const double &open[],
+                const double &high[],
+                const double &low[],
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
+  {
+   if(rates_total < InpSlowPeriod + 1)
+      return(0);
+
+   //=== STEP 1: GOLDEN LIMIT ===
+   int limit = CalculateSafeLimit(rates_total, prev_calculated);
+   
+   //=== STEP 2: REVERSE LOOP — Fill Chart Buffers ===
+   if(limit > 0)
+     {
+      FillChartBuffers(limit);
+     }
+
+   //=== STEP 3: FORWARD LOOP — Draw Dashboard ===
+   // NOTE: Runs every tick because dashboard shows LIVE Bid/Ask/Spread.
+   // Overhead is microscopic (just updating OBJ_TEXT properties).
+   DrawDashboard();
+
+   //=== STEP 4: ALERTS ===
+   if(rates_total != prev_calculated)
+     {
+      ENUM_SIGNAL newSignal = CalculateSignal(1);
+      if(newSignal != SIGNAL_NONE && newSignal != g_prevSignal)
+        {
+         TriggerAlert(newSignal, 1);
+         g_prevSignal = newSignal;
+        }
+     }
+
+   //=== STEP 5: Mark first run complete ===
+   if(g_isFirstRun)
+     {
+      g_isFirstRun = false;
+      LogChain("First run calculation complete.", LOG_INFO, "OnCalc");
+     }
+
+   //=== STEP 6: Return ===
+   return(rates_total);
+  }
+
+//+------------------------------------------------------------------+
+//|               §§§ AI DEVELOPER INSTRUCTIONS §§§                  |
+//|  =================================================================|
+//|  READ THIS BEFORE MODIFYING ANY CODE BELOW THIS POINT.           |
+//|  THESE RULES ARE INVARIANT — DO NOT VIOLATE.                     |
+//|  =================================================================|
+//+------------------------------------------------------------------+
+//
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  RULE 1: DATA TYPE → UPDATE STRATEGY MAPPING                    ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  TYPE A: BAR-OWNED VALUES (shift is SAFE)                       ║
+// ║  Examples: Close[i], Volume[i], RSI(i).                         ║
+// ║  Update: SHIFT array right, INSERT new at 0.                    ║
+// ║                                                                  ║
+// ║  TYPE B: RELATIONSHIP VALUES (shift is FORBIDDEN)                ║
+// ║  Examples: Log return, % change, Close[i]/Close[i+1].           ║
+// ║  Update: RECALCULATE ALL values from scratch.                    ║
+// ║  Why: Shifting breaks the relationship between bar pairs.       ║
+// ╚══════════════════════════════════════════════════════════════════╝
+//
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  RULE 2: ZERO-FLICKER INVARIANTS                                ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  2A: CREATE ONCE, UPDATE ALWAYS (ObjectFind < 0 then create)    ║
+// ║  2B: NEVER delete and recreate objects during runtime           ║
+// ║  2C: ALWAYS call ChartRedraw(0) at end of DrawDashboard()        ║
+// ╚══════════════════════════════════════════════════════════════════╝
+//
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  RULE 3: DYNAMIC SIZING                                         ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  ALL layout dimensions MUST derive from InpFontSize.            ║
+// ║  NEVER use hardcoded pixel values for heights/widths.           ║
+// ║  Object X/Y text positions should use (InpFontSize * multiplier).║
+// ╚══════════════════════════════════════════════════════════════════╝
+//
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  RULE 4: INIT/DEINIT LIFECYCLE                                 ║
+// ╠══════════════════════════════════════════════════════════════════╣
+// ║  4A: OnInit() MUST start with CleanupAllObjects()               ║
+// ║  4B: CleanupAllObjects() MUST loop BACKWARDS (i--)              ║
+// ║  4C: ObjectDelete ONLY allowed inside CleanupAllObjects()       ║
+// ╚══════════════════════════════════════════════════════════════════╝
+//
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  END OF AI INSTRUCTIONS                                         ║
+// ╚══════════════════════════════════════════════════════════════════╝
+//+------------------------------------------------------------------+
+
+
 Option C: "I have this bug [describe symptom] — help me diagnose"
