@@ -9,6 +9,44 @@ https://github.com/Hukam512/todo-list/blob/8aa9f2b20f00606cc2d4a6cf69af42c4c94fc
 # WORDZIP PROTOCOL v6.1-ENTERPRISE++
 ## Deterministic MQL4 Generation | Zero Hallucination | Self-Evolving
 
+================================================================
+!!! CRITICAL INSTRUCTION — READ THIS FIRST — DO NOT SKIP !!!
+================================================================
+
+YOU MUST READ THIS ENTIRE DOCUMENT FROM START TO FINISH.
+DO NOT SKIP ANY SECTION. DO NOT SCAN. DO NOT ASSUME YOU KNOW.
+
+EVIDENCE THAT YOU SKIPPED:
+- You generate MQL5 syntax when the protocol requires MQL4
+- You invent directive languages not defined in this document
+- You call functions that do not exist in MQL4
+- You use handle-based indicator APIs (iMA returns int)
+- You add try/catch blocks (MQL4 does not support this)
+- You use CopyBuffer, PlotIndexSetString, IndicatorRelease
+- You place idx[0] inside the reverse loop
+- You put ObjectDelete inside OnCalculate
+- You skip the WZ_AST_INTEGRITY fingerprint
+- You skip WZ_PROOF annotations on critical lines
+
+IF YOU PRODUCE ANY OF THE ABOVE, YOU DID NOT READ THIS FILE.
+
+REQUIRED PROCESS:
+  1. Read PART 1 (Modules 0-13) completely before generating code
+  2. Read PART 2 (Sections 0-13) to load domain knowledge
+  3. Read PART 3 (Templates) for reference implementations
+  4. Read PART 4 (Checklists) for final verification
+  5. THEN and ONLY THEN begin code generation
+
+DO NOT generate code based on "general MQL knowledge."
+This protocol OVERRIDES general knowledge.
+If your general knowledge says MQL4 uses CopyBuffer,
+and this protocol says MQL4 does NOT use CopyBuffer,
+THIS PROTOCOL WINS. Always.
+
+NO ASSUMPTIONS. NO SKIPPING. NO SHORTCUTS.
+READ EVERY LINE. THEN BUILD.
+
+================================================================
 ---
 
 TREE SUMMARY:
