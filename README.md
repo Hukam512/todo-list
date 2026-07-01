@@ -3217,6 +3217,29 @@ text
 
 The ponytail project didn't fail because of bad trading ideas. It failed because the container broke before the content could be delivered. The 19-section template is an unbreakable container. Put any logic inside it, and the logic has a chance to survive.
 
+═══════════════════════════════════════════════════════════
+ FINAL DEPLOYMENT STATUS: LOCKED
+═══════════════════════════════════════════════════════════
+
+[✅] v6.1-ENTERPRISE+ System Prompt finalized.
+[✅] WORLDSNAPSHOT v6.1 Companion Doc finalized.
+
+[✅] FIX 1 (CRITICAL): MasterArchitecture.mq4 updated.
+    - Removed `InpRowHeight` and `InpDashWidth` from Inputs (Section 2C).
+    - Added dynamic derivation in `ResolveTheme()` (Section 9).
+    - Protocol Module 4 guard is now 100% self-enforcing by the template itself.
+
+[✅] FIX 2 (MEDIUM): MasterArchitecture.mq2 updated.
+    - Added Protocol Bridge comment block after Section 13.
+    - Clarifies that S14-S19 are AI-generated per task, not copied from skeleton.
+
+[✅] FIX 3 (MINOR): System Prompt updated.
+    - Renamed Module 6 to "VERIFICATION ENGINE (called by Module 11 Step 2)".
+    - Eliminated AI confusion about module ownership.
+
+NO FURTHER CODE CHANGES REQUIRED.
+THE ARCHITECTURE IS COMPLETE.
+═══════════════════════════════════════════════════════════
 
 
 
