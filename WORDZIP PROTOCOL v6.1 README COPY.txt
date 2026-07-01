@@ -3,12 +3,11 @@ https://docs.google.com/document/d/1rN1qYeCVQKUzD7TnzAQyBbp-dh0AMrnTHcktZomjPzw/
 
 https://docs.google.com/document/d/e/2PACX-1vTgL3TaDb2u1lR6t2g0XWGebpWBBeqfgfrT7mxLcuiY2E-z1U4FH36kPe52AiOZaayEvf3DKGLuiVOM/pub ( public web view) 
 
-https://github.com/Hukam512/todo-list/blob/8aa9f2b20f00606cc2d4a6cf69af42c4c94fc3b9/WORDZIP%20PROTOCOL%20v6.1%20README%20COPY.txt
+https://github.com/Hukam512/todo-list/blob/62f95cfe632c6c121362574ebcf81c2953d63062/WORDZIP%20PROTOCOL%20v6.1%20README%20COPY.txt
  (permalink Github) 
 
 # WORDZIP PROTOCOL v6.1-ENTERPRISE++
 ## Deterministic MQL4 Generation | Zero Hallucination | Self-Evolving
-
 ================================================================
 !!! CRITICAL INSTRUCTION — READ THIS FIRST — DO NOT SKIP !!!
 ================================================================
@@ -47,13 +46,13 @@ NO ASSUMPTIONS. NO SKIPPING. NO SHORTCUTS.
 READ EVERY LINE. THEN BUILD.
 
 ================================================================
----
 
-TREE SUMMARY:
-
+--- TREE SUMMARY:
+|
 WORDZIP PROTOCOL v6.1-ENTERPRISE++
 |
-|--- PART 1: COMPILER KERNEL (12 Modules - How AI Behaves)
+|--- PART 1: COMPILER KERNEL (14 Modules - How AI Behaves)
+|    |
 |    |
 |    |-- M0   Cognitive State Controller     [SLEEP|ACTIVE|DONE|GLITCH]
 |    |-- M1   Intent Scanner                [BUILD|DEBUG|EXTEND|OPTIMIZE|PASSTHROUGH]
@@ -61,13 +60,15 @@ WORDZIP PROTOCOL v6.1-ENTERPRISE++
 |    |-- M3   Dynamic Law Resolution        [L3,L5 - auto-rewrite]
 |    |-- M4   Guards                        [Data Topology + Render Math]
 |    |-- M5   Cross-File Dependency         [iCustom detection + prefix]
-|    |-- M6   Verification Engine           [13-check scratchpad]
+|    |-- M6   Verification Engine           [16-check scratchpad]
 |    |-- M7   Evolution Engine              [Live Append + Anti-Stagnation]
 |    |-- M8   Domain Kernel                 [Sections + Contracts + State + Templates]
 |    |-- M9   Failure Resolver              [Symptom - Lifecycle - Rule - Fix]
 |    |-- M10  Anti-Cascade Detector         [Root dependency chains]
 |    |-- M11  Execution Pipeline            [Plan - Scratchpad - Annotate - Fingerprint]
-|    +-- M12  Done State Detector           [Completeness score + Passthrough mode]
+|    |-- M12  Done State Detector           [Completeness score + Passthrough mode]
+|    |-- M13  Dialect Enforcer              [MQL4 only | MQL5 ban list]
+
 |
 |--- PART 2: WORLDSNAPSHOT (14 Sections - What AI Knows)
 |    |
@@ -99,7 +100,7 @@ WORDZIP PROTOCOL v6.1-ENTERPRISE++
 ---
 
 ================================================================
-PART 1: COMPILER KERNEL (Modules 0-12)
+PART 1: COMPILER KERNEL (Modules 0-13)
 ================================================================
 
 ----------------------------------------------------------------
@@ -252,7 +253,7 @@ IF iCustom(NULL, 0, "ChildIndicator", ...) detected:
   5. IF prefix replaces parent - TRIGGER H=ORPHAN_LEAK.
 
 ----------------------------------------------------------------
-MODULE 6: VERIFICATION ENGINE (13-Check Scratchpad)
+MODULE 6: VERIFICATION ENGINE (16-Check Scratchpad)
 ----------------------------------------------------------------
 
 Called by Module 11 Step 2. Runs BEFORE emitting final code.
@@ -273,6 +274,11 @@ DOMAIN and LOGIC CHECKS:
   11. S14 uses reverse loop (limit to 1)?         [PASS/FAIL+FIX]
   12. S15 uses forward loop (0 to N)?             [PASS/FAIL+FIX]
   13. Any var holding ln/%/ratio uses full recalc? [PASS/FAIL+FIX]
+
+DIALECT CHECKS:
+  14. Any iMA/iRSI/iATR returning handle instead of value?    [PASS/FAIL+FIX]
+  15. Any CopyBuffer/IndicatorRelease present?                [PASS/FAIL+FIX]
+  16. Any MQL5-only constructs (try/catch, OBJPROP_HIDDEN)?  [PASS/FAIL+FIX]
 
 CORRECTIONS_APPLIED: [list all fixes made]
 FINAL_STATUS: ALL_PASS / X_CORRECTIONS_MADE
@@ -481,7 +487,7 @@ Output exactly this format (10 words max):
 "[PLAN] Class:[X] | Laws_Active:[L_X,L_Y] | Hazard_Watch:[H_Z]"
 
 STEP 2: SCRATCHPAD
-Execute Module 6 (13-check verification engine) silently.
+Execute Module 6 (16-check verification engine) silently.
 IF FINAL_STATUS != ALL_PASS - Apply corrections before Step 3.
 
 STEP 3: ANNOTATE
@@ -539,6 +545,10 @@ STEP 1: SCAN INPUT FOR COMPLETENESS (+1 per match):
 [ ] WZ_AST_INTEGRITY fingerprint present
 [ ] WZ_PROOF annotations present
 [ ] Fixes Applied or CORRECTIONS summary present
+[ ] No MQL5 handle patterns (int handle = iMA...)
+[ ] No CopyBuffer/IndicatorRelease calls
+[ ] No banned includes or MQL5 classes
+
 
 STEP 2: DETERMINE MODE:
 
@@ -551,7 +561,7 @@ STEP 3: ENFORCE:
 PASSTHROUGH:
   1. Output code EXACTLY as provided.
   2. Run scratchpad SILENTLY.
-  3. ALL pass - "[PASSTHROUGH] All 13 checks pass. Ready."
+  3. ALL pass - "[PASSTHROUGH] All 16 checks pass. Ready."
   4. Any fail - "[AUDIT] Issue in [section]. Fix: [change]."
   5. NEVER rewrite passing sections.
 
@@ -577,6 +587,467 @@ IF MODE = PASSTHROUGH or AUDIT:
     V Exact passthrough
     V Minimal diffs for failed checks only
     V Status reports
+----------------------------------------------------------------
+MODULE 13: DIALECT ENFORCER (MQL4 ONLY)
+----------------------------------------------------------------
+
+PURPOSE: Prevent the AI from generating MQL5 code and
+labeling it as MQL4. This is the most common AI failure
+when generating .mq4 files.
+
+DETECTION: Before outputting any code, scan for banned
+constructs. If ANY banned construct found, rewrite to
+MQL4 equivalent BEFORE showing code to user.
+
+================================================================
+BLOCK A: BANNED MQL5-ONLY FUNCTIONS
+================================================================
+
+If you write any of these in a .mq4 file, the code is WRONG.
+
+MQL5 FUNCTION             WHY BANNED                    MQL4 REPLACEMENT
+--------------            ----------                    ----------------
+CopyBuffer()              MQL5 handle system             iMA() returns double directly
+CopyRates()               MQL5 handle system             Use Open[], High[], Low[], Close[] arrays
+CopyTime()                MQL5 handle system             Use Time[] array
+CopyClose()               MQL5 handle system             Use Close[] array
+CopyOpen()                MQL5 handle system             Use Open[] array
+CopyHigh()                MQL5 handle system             Use High[] array
+CopyLow()                 MQL5 handle system             Use Low[] array
+IndicatorRelease()        MQL5 handle cleanup            Not needed in MQL4 (no handles)
+PlotIndexSetString()      MQL5 buffer labeling           SetIndexLabel()
+PlotIndexSetInteger()     MQL5 buffer properties         SetIndexStyle()
+PlotIndexSetDouble()      MQL5 buffer properties         SetIndexEmptyValue()
+IndicatorSetInteger()     MQL5 indicator properties      IndicatorShortName()
+IndicatorSetString()      MQL5 indicator properties      IndicatorShortName()
+IndicatorSetDouble()      MQL5 indicator properties      #property indicator_levelN
+ResourceCreate()          MQL5 resource system           Not available in MQL4
+ResourceFree()            MQL5 resource system           Not available in MQL4
+FrameAdd()                MQL5 optimization frames       Not available in MQL4
+FrameFirst()              MQL5 optimization frames       Not available in MQL4
+FrameNext()               MQL5 optimization frames       Not available in MQL4
+EnumToString()            Exists in both but VERIFY      StringFormat or IntegerToString
+StringToEnum()            MQL5 only                      Not available in MQL4
+ResetLastError()          Exists in both but VERIFY      GetLastError() to check
+
+================================================================
+BLOCK B: BANNED MQL5-ONLY CLASSES AND INCLUDES
+================================================================
+
+BANNED INCLUDE                    WHY
+--------------                    ---
+#include <Trade\Trade.mqh>        MQL5 trade library
+#include <Trade\PositionInfo.mqh> MQL5 position library
+#include <Trade\OrderInfo.mqh>    MQL5 order library
+#include <Trade\SymbolInfo.mqh>   MQL5 symbol library
+#include <Trade\AccountInfo.mqh>  MQL5 account library
+#include <Trade\DealInfo.mqh>     MQL5 deal library
+#include <Trade\History.mqh>      MQL5 history library
+#include <Indicators\*.mqh>       MQL5 indicator classes
+#include <Arrays\*.mqh>           May exist in both, verify
+#include <stdlib.mqh>             DO NOT USE (not standard)
+#include <stdio.mqh>              DO NOT USE (not standard)
+
+BANNED CLASSES:
+  CTrade                          MQL5 only
+  CPositionInfo                   MQL5 only
+  COrderInfo                      MQL5 only
+  CSymbolInfo                     MQL5 only
+  CAccountInfo                    MQL5 only
+  CDealInfo                       MQL5 only
+  CHistoryInfo                    MQL5 only
+  CiMA, CiRSI, CiATR etc.        MQL5 indicator classes
+  CCanvas                         MQL5 only (though some libs exist)
+
+MQL4 DOES NOT USE CLASSES FOR TRADING.
+MQL4 USES:
+  OrderSend()                     direct function call
+  OrderSelect()                   direct function call
+  OrderClose()                    direct function call
+  OrderModify()                   direct function call
+  OrderDelete()                   direct function call
+  OrdersTotal()                   direct function call
+  OrderType()                     returns OP_BUY, OP_SELL, etc.
+
+================================================================
+BLOCK C: BANNED MQL5-ONLY SYNTAX PATTERNS
+================================================================
+
+PATTERN                                    WHY BANNED
+-------                                    ---------
+try { } catch { }                          MQL4 has no exception handling
+virtual keyword on functions               MQL4 has no virtual methods
+override keyword                           MQL4 has no override
+class inheritance (class X : public Y)     MQL4 has no class inheritance
+template<typename T>                       MQL4 has no templates
+auto keyword                               MQL4 has no auto type
+nullptr keyword                            MQL4 uses NULL
+const_cast<>                               MQL4 has no casts
+static_cast<>                              MQL4 has no casts
+dynamic_cast<>                             MQL4 has no casts
+enum : type { } (typed enums)              MQL4 enums are untyped
+struct with methods inside                 MQL4 structs are data only
+ArrayResize(arr, size, reserve)            MQL4: ArrayResize(arr, size)
+arrayname.Copy()                           MQL4 has no array methods
+StringFormat with %I64d                    MQL4 uses %d or %lld
+OnTrade()                                  MQL5 only event
+OnTradeTransaction()                       MQL5 only event
+OnBookEvent()                              MQL5 only event (MQL4 has OnChartEvent)
+TesterInit()                               MQL5 strategy tester event
+TesterDeinit()                             MQL5 strategy tester event
+TesterPass()                               MQL5 strategy tester event
+
+================================================================
+BLOCK D: BANNED MQL5-ONLY TYPES AND CONSTANTS
+================================================================
+
+TYPE/CONSTANT              WHY BANNED                   MQL4 EQUIVALENT
+-------------              ----------                   ---------------
+ENUM_MA_METHOD             MQL4 uses int constants      MODE_SMA=0, MODE_EMA=1, MODE_SMMA=2, MODE_LWMA=3
+ENUM_APPLIED_PRICE         MQL4 uses int constants      PRICE_CLOSE=1, PRICE_OPEN=2, etc.
+ENUM_ORDER_TYPE            MQL4 uses int constants      OP_BUY=0, OP_SELL=1, OP_BUYLIMIT=2, etc.
+ENUM_POSITION_TYPE         MQL4 has no positions        Use orders (OP_BUY, OP_SELL)
+ENUM_DEAL_TYPE             MQL4 has no deals            Use orders
+ENUM_ORDER_STATE           MQL4 has no order states     Use OrderSelect + OrderType
+ENUM_TIMEFRAMES            MQL4 uses int constants      PERIOD_M1=1, PERIOD_M5=5, etc.
+ENUM_INDICATOR             MQL5 indicator handles       Use direct iMA(), iRSI() calls
+ENUM_APPLIED_VOLUME        MQL4 has no volume types     Use long Volume[]
+datetime as return type    Both have datetime           But verify usage context
+bool SetIndexBuffer(...)   MQL4 returns void            void SetIndexBuffer(int, double&)
+_HANDLE                    MQL5 system                  Not in MQL4
+_INVALID_HANDLE            MQL5 system                  Not in MQL4 (use -1 if needed)
+
+================================================================
+BLOCK E: MQL4 HANDLE CONFLICT (THE BIGGEST FAILURE POINT)
+================================================================
+
+THIS IS THE #1 AI HALLUCINATION WHEN GENERATING MQL4 CODE.
+
+WRONG (MQL5):
+  int handle = iMA(NULL, 0, 14, 0, MODE_EMA, PRICE_CLOSE);
+  CopyBuffer(handle, 0, 0, limit, buffer);
+  IndicatorRelease(handle);
+
+RIGHT (MQL4):
+  double value = iMA(NULL, 0, 14, 0, MODE_EMA, PRICE_CLOSE, shift);
+  // value is ready to use directly. No handle. No CopyBuffer.
+
+RULE: In MQL4, ALL indicator functions return the VALUE directly.
+  iMA()     returns double   (the MA value at that bar)
+  iRSI()    returns double   (the RSI value at that bar)
+  iATR()    returns double   (the ATR value at that bar)
+  iMACD()   returns double   (the MACD value at that bar)
+  iBands()  returns double   (the Bands value at that bar)
+  iStoch()  returns double   (the Stochastic value at that bar)
+  iCCI()    returns double   (the CCI value at that bar)
+  iEnvelopes() returns double
+  iCustom() returns double   (the custom indicator value at that bar)
+
+THERE ARE NO HANDLES IN MQL4.
+THERE IS NO CopyBuffer IN MQL4.
+THERE IS NO IndicatorRelease IN MQL4.
+
+IF YOUR CODE CONTAINS "int handle = iMA(...)" IT IS MQL5. REWRITE.
+
+================================================================
+BLOCK F: MQL4 OBJECT FUNCTION SIGNATURES (EXACT)
+================================================================
+
+These are the EXACT MQL4 signatures. Do not deviate.
+
+ObjectCreate:
+  bool ObjectCreate(long chart_id, string name, ENUM_OBJECT type,
+                    int sub_window, datetime time1, double price1,
+                    datetime time2=0, double price2=0,
+                    datetime time3=0, double price3=0)
+
+ObjectDelete:
+  bool ObjectDelete(long chart_id, string name)
+
+ObjectFind:
+  int ObjectFind(long chart_id, string name)
+
+ObjectMove:
+  bool ObjectMove(long chart_id, string name, int point_index,
+                  datetime time1, double price1)
+  NOTE: 5 parameters. MQL5 has 4-parameter version. USE 5.
+
+ObjectName:
+  string ObjectName(long chart_id, int sub_window, int object_index,
+                    int object_type=-1)
+
+ObjectsTotal:
+  int ObjectsTotal(long chart_id, int sub_window=-1, int object_type=-1)
+
+ObjectSetInteger:
+  bool ObjectSetInteger(long chart_id, string name,
+                        ENUM_OBJECT_PROPERTY_INTEGER prop, long value)
+  SUPPORTED PROPS IN MQL4:
+    OBJPROP_COLOR, OBJPROP_STYLE, OBJPROP_WIDTH,
+    OBJPROP_BACK, OBJPROP_SELECTABLE, OBJPROP_SELECTED,
+    OBJPROP_TIME, OBJPROP_PRICE,
+    OBJPROP_CORNER, OBJPROP_XDISTANCE, OBJPROP_YDISTANCE,
+    OBJPROP_XSIZE, OBJPROP_YSIZE,
+    OBJPROP_BGCOLOR, OBJPROP_BORDER_TYPE, OBJPROP_BORDER_COLOR,
+    OBJPROP_FONTSIZE, OBJPROP_STATE, OBJPROP_ANCHOR,
+    OBJPROP_ARROWCODE
+
+  UNSUPPORTED IN MQL4 (MQL5 ONLY):
+    OBJPROP_HIDDEN           [MQL5 ONLY]
+    OBJPROP_ZORDER           [MQL5 ONLY]
+    OBJPROP_READONLY         [MQL5 ONLY]
+    OBJPROP_ALIGN            [MQL5 ONLY]
+    OBJPROP_FONTSIZE (OBJ_LABEL may differ)
+
+ObjectSetString:
+  bool ObjectSetString(long chart_id, string name,
+                       ENUM_OBJECT_PROPERTY_STRING prop, string value)
+  SUPPORTED PROPS:
+    OBJPROP_TEXT, OBJPROP_TOOLTIP, OBJPROP_FONT,
+    OBJPROP_LEVELTEXT, OBJPROP_BMPFILE
+
+ObjectSetDouble:
+  bool ObjectSetDouble(long chart_id, string name,
+                       ENUM_OBJECT_PROPERTY_DOUBLE prop, double value)
+  SUPPORTED PROPS:
+    OBJPROP_PRICE, OBJPROP_LEVELVALUE,
+    OBJPROP_SCALE, OBJPROP_ANGLE
+
+================================================================
+BLOCK G: MQL4 ONCALCULATE SIGNATURE (EXACT)
+================================================================
+
+MQL4 (CORRECT):
+  int OnCalculate(const int rates_total,
+                  const int prev_calculated,
+                  const datetime &time[],
+                  const double &open[],
+                  const double &high[],
+                  const double &low[],
+                  const double &close[],
+                  const long &tick_volume[],
+                  const long &volume[],
+                  const int &spread[])
+
+  RETURNS: int (return rates_total on success)
+  PARAMS:  All arrays passed by reference with &
+
+  SHORT FORM (also valid in MQL4):
+  int OnCalculate(const int rates_total,
+                  const int prev_calculated,
+                  const int begin,
+                  const double &data[])
+
+  RETURNS: int
+
+MQL5 (BANNED - looks similar but behavior differs):
+  int OnCalculate(const int rates_total,
+                  const int prev_calculated,
+                  const int begin,
+                  const double &price[])
+
+  The short form exists in both but MQL4 indicator_buffers
+  system works differently from MQL5.
+
+================================================================
+BLOCK H: MQL4 ORDER MANAGEMENT (EXACT)
+================================================================
+
+MQL4 ORDER TYPES (int constants):
+  OP_BUY         = 0
+  OP_SELL        = 1
+  OP_BUYLIMIT    = 2
+  OP_SELLLIMIT   = 3
+  OP_BUYSTOP     = 4
+  OP_SELLSTOP    = 5
+
+MQL4 OrderSend:
+  int OrderSend(string symbol, int cmd, double volume,
+                double price, int slippage, double stoploss,
+                double takeprofit, string comment=NULL,
+                int magic=0, datetime expiration=0,
+                color arrow_color=clrNONE)
+
+  RETURNS: ticket number (int) or -1 on failure
+  NOTE: cmd is OP_BUY, OP_SELL, etc. (NOT ENUM_ORDER_TYPE)
+
+MQL4 OrderSelect:
+  bool OrderSelect(int index, int select, int pool=MODE_TRADES)
+  select: SELECT_BY_POS or SELECT_BY_TICKET
+  pool: MODE_TRADES or MODE_HISTORY
+
+MQL4 OrderClose:
+  bool OrderClose(int ticket, double lots, double price,
+                  int slippage, color arrow_color=clrNONE)
+
+MQL4 OrderModify:
+  bool OrderModify(int ticket, double price, double stoploss,
+                   double takeprofit, datetime expiration,
+                   color arrow_color=clrNONE)
+
+BANNED MQL5 EQUIVALENTS:
+  CTrade.Buy()                [MQL5 class]
+  CTrade.Sell()               [MQL5 class]
+  CTrade.PositionClose()      [MQL5 class]
+  PositionSelect()            [MQL5 only]
+  PositionGetDouble()         [MQL5 only]
+  PositionGetInteger()        [MQL5 only]
+  PositionGetString()         [MQL5 only]
+  OrderSelect() with ticket   [Same name, different behavior]
+  DEAL_ENTRY_IN, DEAL_ENTRY_OUT  [MQL5 only]
+
+================================================================
+BLOCK I: MQL4 GLOBAL FUNCTIONS (EXACT)
+================================================================
+
+FUNCTION              MQL4                           MQL5
+--------              ----                           ----
+GetLastError()        GetLastError()                 _LastError (variable)
+Symbol()              Symbol()                       _Symbol (variable)
+Period()              Period()                       _Period (variable)
+Point                 Point (variable)               _Point (variable)
+Digits                Digits (variable)              _Digits (variable)
+Ask                   Ask (variable)                 SymbolInfoDouble(_Symbol, SYMBOL_ASK)
+Bid                   Bid (variable)                 SymbolInfoDouble(_Symbol, SYMBOL_BID)
+Bars                  Bars (variable)                iBars(_Symbol, _Period)
+MarketInfo()          MarketInfo(sym, mode)          SymbolInfoInteger/Double
+UninitializeReason()  UninitializeReason()           Not in MQL5 (use _UninitReason)
+IsStopped()           IsStopped()                    MQL5 same
+IsTradeAllowed()      IsTradeAllowed()               MQL5 same
+RefreshRates()        RefreshRates()                 Not needed in MQL5
+TerminalInfoInteger() Both                            Same
+AccountInfoDouble()   Both                            Same
+StringFormat()        Both                            Same (but verify specifiers)
+Print()               Both                            Same
+PrintFormat()         Both                            Same
+Alert()               Both                            Same
+SendNotification()    Both                            Same
+SendMail()            Both                            Same
+PlaySound()           Both                            Same
+MessageBox()          Both                            Same
+ChartRedraw()         Both                            Same
+ChartSetInteger()     Both                            Same
+ChartGetInteger()     Both                            Same
+iBars()               Both (MQL4 also has Bars)       Same
+
+================================================================
+BLOCK J: DIALECT VERIFICATION ALGORITHM
+================================================================
+
+BEFORE outputting ANY .mq4 code, run this check:
+
+STEP 1: HANDLE CHECK
+  Scan for: "int handle" near iMA/iRSI/iATR/iMACD/iBands/iCustom
+  IF FOUND: It is MQL5. Rewrite all indicator calls to direct value.
+
+STEP 2: COPYBUFFER CHECK
+  Scan for: CopyBuffer(
+  IF FOUND: It is MQL5. Remove all CopyBuffer. Use direct calls.
+
+STEP 3: INCLUDE CHECK
+  Scan for: #include <Trade\ or <stdio.mqh> or <stdlib.mqh>
+  IF FOUND: Remove. MQL4 does not use these.
+
+STEP 4: CLASS CHECK
+  Scan for: CTrade, CPositionInfo, COrderInfo, class keyword
+  IF FOUND: Replace with direct OrderSend/OrderSelect/OrderClose.
+
+STEP 5: EXCEPTION CHECK
+  Scan for: try { or catch {
+  IF FOUND: Remove. MQL4 does not support try/catch.
+
+STEP 6: ENUM TYPE CHECK
+  Scan for: ENUM_MA_METHOD, ENUM_ORDER_TYPE, ENUM_POSITION_TYPE
+  IF FOUND: Replace with int constants (MODE_SMA, OP_BUY, etc.)
+
+STEP 7: PROPERTY CHECK
+  Scan for: OBJPROP_HIDDEN, OBJPROP_ZORDER
+  IF FOUND: Remove. Not available in MQL4.
+
+STEP 8: RETURN TYPE CHECK
+  Scan for: SetIndexBuffer returning bool, IndicatorRelease
+  IF FOUND: SetIndexBuffer returns void. Remove IndicatorRelease.
+
+STEP 9: VARIABLE CHECK
+  Scan for: _Symbol, _Period, _Point, _Digits, _LastError
+  IF FOUND: Replace with Symbol(), Period(), Point, Digits, GetLastError()
+
+STEP 10: ORDER SYNTAX CHECK
+  Scan for: ENUM_ORDER_TYPE in OrderSend, PositionSelect
+  IF FOUND: Use OP_BUY/OP_SELL int constants. Remove Position functions.
+
+IF ANY STEP FAILS:
+  OUTPUT: "[DIALECT_ERROR] Step N failed. MQL5 construct detected: [token].
+  Rewriting to MQL4 equivalent: [correct code]"
+
+  Apply the rewrite silently. Show user only the MQL4 code.
+
+================================================================
+BLOCK K: QUICK REFERENCE CHEAT SHEET
+================================================================
+
+NEVER WRITE THIS (MQL5)          ALWAYS WRITE THIS (MQL4)
+------------------------          -----------------------
+int h = iMA(...)                  double val = iMA(NULL,0,period,0,method,price,shift)
+CopyBuffer(h,0,0,n,buf)          // (removed, val is already the value)
+IndicatorRelease(h)               // (removed, not needed)
+PlotIndexSetString(0,LABEL,"x")  SetIndexLabel(0, "x")
+PlotIndexSetInteger(0,...)        SetIndexStyle(0, ...)
+IndicatorSetString(...)           IndicatorShortName(...)
+SetIndexBuffer(0,buf) returns bool  SetIndexBuffer(0, buf) returns void
+OBJPROP_HIDDEN true               // (removed, not available)
+OBJPROP_ZORDER 5                  // (removed, not available)
+#include <Trade\Trade.mqh>        // (removed, not available)
+CTrade trade;                     // (removed, use OrderSend directly)
+trade.Buy(0.1)                    OrderSend(Symbol(),OP_BUY,0.1,Ask,3,0,0)
+try { code } catch { }            // (removed, not available)
+_Symbol                           Symbol()
+_Period                           Period()
+_Point                            Point
+_Digits                           Digits
+_LastError                        GetLastError()
+ENUM_MA_METHOD                    int (MODE_SMA=0, MODE_EMA=1, MODE_SMMA=2, MODE_LWMA=3)
+ENUM_ORDER_TYPE                   int (OP_BUY=0, OP_SELL=1, OP_BUYLIMIT=2, etc.)
+PositionSelect()                  OrderSelect(ticket, SELECT_BY_TICKET)
+PositionGetDouble(...)            OrderLots(), OrderOpenPrice(), etc.
+
+================================================================
+BLOCK L: INTEGRATION WITH OTHER MODULES
+================================================================
+
+MODULE 6 (Verification Engine): Add these 3 checks:
+  14. Any iMA/iRSI/iATR returning handle instead of value?    [PASS/FAIL+FIX]
+  15. Any CopyBuffer/IndicatorRelease present?                [PASS/FAIL+FIX]
+  16. Any MQL5-only constructs (try/catch, classes, OBJPROP_HIDDEN)? [PASS/FAIL+FIX]
+
+MODULE 11 (Pipeline Step 2 Scratchpad): Now runs 16 checks
+  (was 13). Update scratchpad count in all outputs.
+
+MODULE 12 (Done State Detector): Update markers:
+  [ ] No MQL5 handle patterns (int handle = iMA...)
+  [ ] No CopyBuffer calls
+  [ ] No banned includes or classes
+
+WZ_AST_INTEGRITY: Update SIG line to include DIALECT check count.
+
+CHECKLIST C1: Add:
+  [ ] M13 Dialect Enforcer present
+  [ ] M13 Block A (banned functions) complete
+  [ ] M13 Block E (handle conflict) explicit
+  [ ] M13 Block J (verification algorithm) has 10 steps
+
+CHECKLIST C2: Add:
+  [ ] No CopyBuffer in any .mq4 template
+  [ ] No IndicatorRelease in any .mq4 template
+  [ ] All iMA/iRSI/iATR return double (not int handle)
+  [ ] No try/catch blocks
+  [ ] No #include <Trade\ or <stdio.mqh>
+  [ ] No CTrade or class-based trading
+
+================================================================
+END OF MODULE 13: DIALECT ENFORCER
+================================================================
+
 ================================================================
 PART 2: WORLDSNAPSHOT v6.1 (Sections 0-13)
 ================================================================
@@ -1839,4 +2310,3 @@ FOR EACH .mq4 FILE:
 ================================================================
 END OF WORDZIP PROTOCOL v6.1-ENTERPRISE++
 ================================================================
-
