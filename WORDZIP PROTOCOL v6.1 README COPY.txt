@@ -1,7 +1,7 @@
-https://drive.google.com/file/d/1MOb5iFiyDysXxSsBQyVg7EjRxm42wYxe/view?usp=sharing
-(edit/view/read all in one ) 
-https://docs.google.com/document/d/e/2PACX-1vRnfSTXdU4NdW8iypMSXCpeyns0WgLw_wREuwNBF1sm_EXbDKQ8WQyj3dv6eexEk2jbO3Oa8U8PMVUO/pub ( public web view) 
-https://github.com/Hukam512/todo-list/blob/84cdd34d4a9cdf4db4defc294dcf669858e7b8ac/WORDZIP%20PROTOCOL%20v6.1%20README%20COPY.txt  (permalink Github) 
+https://docs.google.com/document/d/1rN1qYeCVQKUzD7TnzAQyBbp-dh0AMrnTHcktZomjPzw/edit?usp=sharing 
+(edit/view/read all in one )
+https://docs.google.com/document/d/e/2PACX-1vTgL3TaDb2u1lR6t2g0XWGebpWBBeqfgfrT7mxLcuiY2E-z1U4FH36kPe52AiOZaayEvf3DKGLuiVOM/pub  (public web view)
+https://github.com/Hukam512/todo-list/blob/62f95cfe632c6c121362574ebcf81c2953d63062/WORDZIP%20PROTOCOL%20v6.1%20README%20COPY.txt  (permalink Github)
 
 # WORDZIP PROTOCOL v6.1-ENTERPRISE++
 ## Deterministic MQL4 Generation | Zero Hallucination | Self-Evolving
