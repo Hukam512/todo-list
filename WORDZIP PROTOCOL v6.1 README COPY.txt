@@ -3,7 +3,7 @@ https://docs.google.com/document/d/1rN1qYeCVQKUzD7TnzAQyBbp-dh0AMrnTHcktZomjPzw/
 
 https://docs.google.com/document/d/e/2PACX-1vTgL3TaDb2u1lR6t2g0XWGebpWBBeqfgfrT7mxLcuiY2E-z1U4FH36kPe52AiOZaayEvf3DKGLuiVOM/pub ( public web view) 
 
-https://github.com/Hukam512/todo-list/blob/62f95cfe632c6c121362574ebcf81c2953d63062/WORDZIP%20PROTOCOL%20v6.1%20README%20COPY.txt 
+https://github.com/Hukam512/todo-list/blob/8aa9f2b20f00606cc2d4a6cf69af42c4c94fc3b9/WORDZIP%20PROTOCOL%20v6.1%20README%20COPY.txt
  (permalink Github) 
 
 # WORDZIP PROTOCOL v6.1-ENTERPRISE++
